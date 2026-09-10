@@ -26,8 +26,10 @@
       <form id="countdown-form">
         <div class="field"><label for="event-name">事件名称</label><input id="event-name" name="event" type="text" maxlength="60" placeholder="例如：中秋节、生日、下一次旅行" required autocomplete="off"></div>
         <div class="field date-field"><label for="target-date">目标日期</label><input id="target-date" name="date" type="date" required min="0001-01-01" max="9999-12-31"></div>
+        <div class="field time-field"><label for="target-time">目标时间（可选）</label><input id="target-time" name="time" type="time" step="1" aria-describedby="time-hint"></div>
         <button class="create-button" type="submit"><span aria-hidden="true">＋</span> 创建倒计时</button>
       </form>
+      <p id="time-hint" class="time-hint">按设备本地时间计算 · 未填写时间时，默认为当天 00:00:00</p>
       <p id="form-message" class="form-message" role="status" aria-live="polite"></p>
     </section>
 

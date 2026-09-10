@@ -6,6 +6,7 @@ const COLORS = ["#eaf0e1", "#f7eadf", "#e7eef4", "#f4e6e9", "#f5efd8", "#ebe8f2"
 const form = document.getElementById("countdown-form");
 const nameInput = document.getElementById("event-name");
 const dateInput = document.getElementById("target-date");
+const timeInput = document.getElementById("target-time");
 const list = document.getElementById("countdown-list");
 const message = document.getElementById("form-message");
 
@@ -26,9 +27,31 @@ function parseDate(value) {
   return check.getUTCFullYear() === year && check.getUTCMonth() === month - 1 && check.getUTCDate() === day ? result : null;
 }
 
-function todayDay() {
-  const now = new Date();
-  return calendarDay(now.getFullYear(), now.getMonth() + 1, now.getDate());
+function normalizeTime(value) {
+  if (value === undefined || value === "") return "00:00:00";
+  if (typeof value !== "string" || !/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(value)) return null;
+  return value.length === 5 ? `${value}:00` : value;
+}
+
+function targetTimestamp(dateValue, timeValue) {
+  const time = normalizeTime(timeValue);
+  if (parseDate(dateValue) === null || time === null) return null;
+  const [year, month, day] = dateValue.split("-").map(Number);
+  const [hour, minute, second] = time.split(":").map(Number);
+  const target = new Date(0);
+  target.setFullYear(year, month - 1, day);
+  target.setHours(hour, minute, second, 0);
+  // Reject local wall-clock times skipped by a daylight-saving transition.
+  if (target.getFullYear() !== year || target.getMonth() !== month - 1 || target.getDate() !== day || target.getHours() !== hour || target.getMinutes() !== minute || target.getSeconds() !== second) return null;
+  return target.getTime();
+}
+
+function countdownParts(target, now) {
+  const difference = target - now;
+  const reached = difference <= 0;
+  // Round future fractions up so 00:00:00 never appears before the target.
+  const total = reached ? Math.floor(-difference / 1000) : Math.ceil(difference / 1000);
+  return { reached, days: Math.floor(total / 86400), hours: Math.floor(total / 3600) % 24, minutes: Math.floor(total / 60) % 60, seconds: total % 60 };
 }
 
 function showMessage(text, error = false) {
@@ -41,10 +64,10 @@ function loadEvents() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw === null) return [];
     const data = JSON.parse(raw);
-    if (!Array.isArray(data) || !data.every(item => item && typeof item.id === "string" && typeof item.name === "string" && item.name.trim().length > 0 && item.name.length <= 60 && parseDate(item.date) !== null) || new Set(data.map(item => item.id)).size !== data.length) {
+    if (!Array.isArray(data) || !data.every(item => item && typeof item.id === "string" && typeof item.name === "string" && item.name.trim().length > 0 && item.name.length <= 60 && targetTimestamp(item.date, item.time) !== null) || new Set(data.map(item => item.id)).size !== data.length) {
       throw new Error("Invalid saved countdowns");
     }
-    return data;
+    return data.map(item => ({ ...item, time: normalizeTime(item.time) }));
   } catch {
     showMessage("无法读取本地记录。你仍可使用；新建并成功保存后将替换原有记录。", true);
     return [];
@@ -75,12 +98,28 @@ function element(tag, className, text) {
   return node;
 }
 
+let clockViews = [];
+
+function updateClocks() {
+  const now = Date.now();
+  for (const view of clockViews) {
+    const parts = countdownParts(view.target, now);
+    view.card.classList.toggle("past", parts.reached);
+    view.arrival.hidden = !parts.reached;
+    view.label.textContent = parts.reached ? "已过去" : "还有";
+    view.days.textContent = String(parts.days);
+    view.days.classList.toggle("long-number", String(parts.days).length > 4);
+    [parts.hours, parts.minutes, parts.seconds].forEach((value, index) => {
+      view.digits[index].textContent = String(value).padStart(2, "0");
+    });
+  }
+}
+
 function render() {
   list.replaceChildren();
-  const today = todayDay();
+  clockViews = [];
   events.forEach((event, index) => {
-    const remaining = parseDate(event.date) - today;
-    const card = element("article", "countdown-card" + (remaining < 0 ? " past" : remaining === 0 ? " today" : ""));
+    const card = element("article", "countdown-card");
     card.style.setProperty("--card-bg", COLORS[index % COLORS.length]);
     const remove = element("button", "delete-button");
     remove.type = "button";
@@ -97,15 +136,35 @@ function render() {
     });
     const emoji = element("span", "event-emoji", emojiFor(event.name));
     emoji.setAttribute("aria-hidden", "true");
-    const number = remaining === 0 ? "就是今天" : String(Math.abs(remaining));
-    const date = element("time", "event-date", event.date.replaceAll("-", "."));
-    date.dateTime = event.date;
+    const time = normalizeTime(event.time);
+    const date = element("time", "event-date", `${event.date.replaceAll("-", ".")} ${time}`);
+    date.dateTime = `${event.date}T${time}`;
+    const arrival = element("p", "arrival-message", "时间到啦 🎉");
+    const label = element("p", "day-label");
+    const days = element("strong", "days");
+    const dayRow = element("div", "day-row");
+    dayRow.append(days, element("span", "day-unit", "天"));
+    const clock = element("div", "clock-row");
+    const digits = ["时", "分", "秒"].map((unit, index) => {
+      if (index > 0) {
+        const colon = element("span", "clock-colon", ":");
+        colon.setAttribute("aria-hidden", "true");
+        clock.append(colon);
+      }
+      const part = element("span", "clock-part");
+      const digit = element("strong", "clock-digit");
+      part.append(digit, element("span", "clock-unit", unit));
+      clock.append(part);
+      return digit;
+    });
     // All user-entered content is inserted as text, never HTML.
-    card.append(remove, emoji, element("h3", "event-title", event.name), element("p", "day-label", remaining < 0 ? "已过去" : remaining === 0 ? "期待的日子到了" : "还有"), element("strong", "days" + (number.length > 4 && remaining !== 0 ? " long-number" : ""), number), element("span", "day-unit", remaining === 0 ? "愿今天，有美好的事情发生" : "天"), date);
+    card.append(remove, emoji, element("h3", "event-title", event.name), arrival, label, dayRow, clock, date);
+    clockViews.push({ card, arrival, label, days, digits, target: targetTimestamp(event.date, time) });
     list.append(card);
   });
   document.getElementById("count").textContent = String(events.length);
   document.getElementById("empty-state").hidden = events.length > 0;
+  updateClocks();
 }
 
 nameInput.addEventListener("input", () => nameInput.setCustomValidity(""));
@@ -122,8 +181,14 @@ form.addEventListener("submit", event => {
     dateInput.focus();
     return;
   }
+  const time = normalizeTime(timeInput.value);
+  if (targetTimestamp(dateInput.value, time) === null) {
+    showMessage("请选择有效的本地时间（部分夏令时切换时刻不存在）。", true);
+    timeInput.focus();
+    return;
+  }
   const id = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  events.push({ id, name, date: dateInput.value });
+  events.push({ id, name, date: dateInput.value, time });
   const saved = saveEvents();
   render();
   form.reset();
@@ -132,14 +197,12 @@ form.addEventListener("submit", event => {
 });
 
 document.getElementById("start-button").addEventListener("click", () => nameInput.focus());
-let lastDay = todayDay();
-function refreshDay() {
-  const current = todayDay();
-  if (current !== lastDay) { lastDay = current; render(); }
-}
-setInterval(refreshDay, 30000);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshDay(); });
-window.addEventListener("focus", refreshDay);
+// Update text only: keep cards, animations and keyboard focus stable.
+// Always subtract the real current time, including after background throttling.
+setInterval(updateClocks, 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) updateClocks(); });
+window.addEventListener("focus", updateClocks);
+window.addEventListener("pageshow", updateClocks);
 window.addEventListener("storage", event => {
   if (event.key === STORAGE_KEY || event.key === null) { events = loadEvents(); render(); }
 });

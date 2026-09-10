@@ -25,7 +25,7 @@ h1 { font-size: clamp(34px, 4.8vw, 49px); letter-spacing: 3px; font-weight: 650;
 .heading-icon { display: grid; place-items: center; width: 38px; height: 38px; background: #eff2e6; border-radius: 13px; font-size: 24px; color: #7d9273; }
 h2 { font-size: 17px; font-weight: 600; margin: 0; letter-spacing: .5px; }
 .panel-heading p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
-form { display: grid; grid-template-columns: 1.5fr 1fr auto; gap: 18px; align-items: end; }
+form { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(150px, 1fr) minmax(145px, .9fr) auto; gap: 18px; align-items: end; }
 .field { min-width: 0; }label { display: block; font-size: 12px; margin-bottom: 10px; color: #647468; }
 input { width: 100%; min-width: 0; height: 49px; border: 1px solid #e1e6dc; border-radius: 12px; background: #fafbf6; color: var(--ink); padding: 0 15px; font-size: 14px; transition: border-color .2s, background .2s; }
 input::placeholder { color: #a0a79b; font-size: 12px; }input:focus { background: #fffef9; border-color: #90a58c; }input::-webkit-calendar-picker-indicator { opacity: .5; cursor: pointer; }
@@ -35,7 +35,7 @@ input::placeholder { color: #a0a79b; font-size: 12px; }input:focus { background:
 .card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
 .countdown-card { position: relative; border: 1px solid #ffffffa0; border-radius: 24px; padding: 30px 22px 20px; text-align: center; background: var(--card-bg); box-shadow: 0 4px 14px #43513b03; transition: transform .22s, box-shadow .22s; animation: appear .3s ease-out; overflow: hidden; }.countdown-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px #43513b08; }
 .delete-button { position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 32px; height: 32px; background: transparent; border: 0; color: #798575; border-radius: 50%; opacity: .65; transition: background .2s, opacity .2s; }.delete-button:hover { opacity: 1; background: #ffffff99; color: #a76059; }.delete-button svg { width: 15px; height: 15px; }
-.event-emoji { display: block; font-size: 30px; margin-bottom: 13px; }.event-title { font-size: 18px; font-weight: 600; margin: 0 0 23px; overflow-wrap: anywhere; line-height: 1.5; letter-spacing: .5px; }.day-label { font-size: 12px; color: #758170; letter-spacing: 2px; margin: 0; }.days { display: block; font-size: clamp(55px, 6.5vw, 78px); font-weight: 650; line-height: 1.2; letter-spacing: -3px; margin: 6px 0; font-variant-numeric: tabular-nums; }.days.long-number { font-size: 47px; letter-spacing: -2px; }.day-unit { font-size: 12px; color: #758170; }.event-date { display: block; border-top: 1px solid #65775b17; padding-top: 16px; margin: 24px 0 0; font-size: 11px; letter-spacing: 2px; color: #7b8572; }.today .days { font-size: 38px; letter-spacing: 1px; margin: 22px 0; }.past .day-label { color: #94796c; }
+.event-emoji { display: block; font-size: 30px; margin-bottom: 13px; }.event-title { font-size: 18px; font-weight: 600; margin: 0 0 23px; overflow-wrap: anywhere; line-height: 1.5; letter-spacing: .5px; }.day-label { font-size: 12px; color: #758170; letter-spacing: 2px; margin: 0; }.days { display: block; font-size: clamp(55px, 6.5vw, 78px); font-weight: 650; line-height: 1.2; letter-spacing: -3px; margin: 6px 0; font-variant-numeric: tabular-nums; }.days.long-number { font-size: 47px; letter-spacing: -2px; }.day-unit { font-size: 12px; color: #758170; }.event-date { display: block; border-top: 1px solid #65775b17; padding-top: 16px; margin: 24px 0 0; font-size: 11px; letter-spacing: 2px; color: #7b8572; }.past .day-label { color: #94796c; }
 .empty-state { border: 1px dashed #dce3d3; border-radius: 24px; text-align: center; padding: 34px 20px; background: #fafbf580; }.empty-state[hidden] { display: none; }.empty-flower { font-size: 38px; color: #afbd94; }.empty-state h3 { font-size: 16px; font-weight: 500; margin: 13px 0 10px; }.empty-state p { font-size: 12px; color: #8a9582; line-height: 1.8; }.text-button { border: 0; background: transparent; padding: 9px 13px; font-size: 12px; color: #698362; border-radius: 10px; }.text-button:hover { background: #ebefdf; }
 footer { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 8px; color: #9aa18f; font-size: 11px; letter-spacing: 1px; padding: 38px 0 6px; }footer > span:first-child { font-size: 22px; }.storage-note { margin-left: 14px; color: #a5ab9d; font-size: 10px; }
 @keyframes appear { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -44,3 +44,17 @@ footer { display: flex; justify-content: center; align-items: center; flex-wrap:
 @media (max-width: 440px) { .illustration { display: none; }.hero-copy { padding: 32px 0; }h1 { font-size: 36px; }.subtitle { font-size: 13px; }form { grid-template-columns: 1fr; }.create-panel { padding: 22px 19px; }.card-grid { grid-template-columns: 1fr; }.countdown-card { padding-top: 27px; }.days { font-size: 78px; }.storage-note { flex-basis: 100%; text-align: center; margin-left: 0; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
+
+/* Real-time countdown: retain the existing pastel cards and day emphasis. */
+.time-hint { margin: 14px 0 0; font-size: 11px; color: var(--muted); line-height: 1.7; }
+.day-row { display: flex; justify-content: center; align-items: baseline; gap: 9px; }
+.clock-row { display: flex; justify-content: center; align-items: flex-start; gap: 10px; margin-top: 13px; }
+.clock-part { display: flex; flex-direction: column; gap: 6px; min-width: 45px; }
+.clock-digit { font-size: 32px; line-height: 1.2; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+.clock-unit { font-size: 10px; color: #758170; }
+.clock-colon { font-size: 26px; line-height: 1.3; color: #98a08c; }
+.arrival-message { font-size: 14px; color: #8b7355; margin: -9px 0 13px; }
+.arrival-message[hidden] { display: none; }
+.event-date { letter-spacing: 1px; line-height: 1.8; }
+@media (min-width: 761px) and (max-width: 1000px) { form { grid-template-columns: 1fr 1fr; } .create-button { width: 100%; } }
+@media (min-width: 441px) and (max-width: 760px) { form .field:first-child { grid-column: 1 / -1; } }
