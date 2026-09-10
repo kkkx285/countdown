@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7ef">
+  <title>我的倒计时 · 把期待放进今天</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <div class="brand"><span aria-hidden="true">✿</span> 日子收藏夹</div>
+      <div class="hero-copy">
+        <div><p class="eyebrow">A LITTLE SOMETHING TO LOOK FORWARD TO</p>
+          <h1>我的倒计时<span class="title-star" aria-hidden="true">✧</span></h1>
+          <p class="subtitle">把期待的日子，提前放进今天。</p>
+        </div>
+        <div class="illustration" aria-hidden="true"><span class="spark spark-one">✦</span><div class="calendar"><div class="calendar-top">SOMEDAY</div><span class="calendar-flower">✿</span><div class="calendar-caption">好日子，在路上</div></div><span class="spark spark-two">✧</span><span class="little-leaf">❧</span></div>
+      </div>
+    </header>
+
+    <section class="create-panel" aria-labelledby="create-title">
+      <div class="panel-heading"><span class="heading-icon" aria-hidden="true">＋</span><div><h2 id="create-title">种下一份小期待</h2><p>给特别的日子，留一个位置。</p></div></div>
+      <form id="countdown-form">
+        <div class="field"><label for="event-name">事件名称</label><input id="event-name" name="event" type="text" maxlength="60" placeholder="例如：中秋节、生日、下一次旅行" required autocomplete="off"></div>
+        <div class="field date-field"><label for="target-date">目标日期</label><input id="target-date" name="date" type="date" required min="0001-01-01" max="9999-12-31"></div>
+        <button class="create-button" type="submit"><span aria-hidden="true">＋</span> 创建倒计时</button>
+      </form>
+      <p id="form-message" class="form-message" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="collection" aria-labelledby="collection-title">
+      <div class="collection-heading"><h2 id="collection-title">我的小期待 <span id="count" class="count">0</span></h2><span class="collection-note">每一天，都离期待更近一点 <span aria-hidden="true">✧</span></span></div>
+      <div id="countdown-list" class="card-grid"></div>
+      <div id="empty-state" class="empty-state"><span class="empty-flower" aria-hidden="true">✿</span><h3>下一个期待，是什么呢？</h3><p>填下事件和日期，让美好的日子在这里慢慢靠近。</p><button id="start-button" class="text-button" type="button">写下第一份期待 <span aria-hidden="true">↗</span></button></div>
+    </section>
+    <footer><span aria-hidden="true">❧</span> 好好生活，慢慢期待。<span class="storage-note">仅保存在当前浏览器 · 无需联网</span></footer>
+  </main>
+</body>
+</html>
