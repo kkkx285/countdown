@@ -2,7 +2,6 @@
 
 const STORAGE_KEY = "little-countdowns-v1";
 const DAY_MS = 86400000;
-const COLORS = ["#eaf0e1", "#f7eadf", "#e7eef4", "#f4e6e9", "#f5efd8", "#ebe8f2"];
 const form = document.getElementById("countdown-form");
 const nameInput = document.getElementById("event-name");
 const dateInput = document.getElementById("target-date");
@@ -86,9 +85,27 @@ function saveEvents() {
   }
 }
 
-function emojiFor(name) {
-  const choices = [[/中秋|月亮/, "🌕"], [/国庆/, "🇨🇳"], [/生日/, "🎂"], [/旅行|旅游|出游|出发/, "✈️"], [/考试|考研|高考|中考/, "📚"], [/春节|新年|过年/, "🏮"], [/纪念|结婚|恋爱/, "💌"], [/毕业/, "🎓"], [/假期|放假/, "🌴"]];
-  return choices.find(([pattern]) => pattern.test(name))?.[1] || "✨";
+function themeFor(name) {
+  // First match wins; themes are derived from names, never saved in storage.
+  const themes = [
+    { pattern: /中秋|月亮|赏月|满月|月圆/, id: "moon", emoji: "🌕" },
+    { pattern: /生日/, id: "birthday", emoji: "🎂" },
+    { pattern: /旅行|旅游|出游|出发|去玩/, id: "travel", emoji: "✈️" },
+    { pattern: /国庆/, id: "national", emoji: "🇨🇳" },
+    { pattern: /考试|学习|考研|高考|中考/, id: "study", emoji: "📚" },
+    { pattern: /发工资|发薪|工资到账/, id: "payday", emoji: "💰" },
+    { pattern: /圣诞|平安夜/, id: "christmas", emoji: "🎄" }
+  ];
+  return themes.find(theme => theme.pattern.test(name)) || { id: "default", emoji: "✨" };
+}
+
+function countdownLabel(remainingMs) {
+  if (remainingMs <= 0) return "到啦 🎉";
+  if (remainingMs < DAY_MS) return "就在今天";
+  if (remainingMs < 2 * DAY_MS) return "就是明天 ✨";
+  if (remainingMs < 8 * DAY_MS) return "快要到啦";
+  if (remainingMs <= 30 * DAY_MS) return "还有";
+  return "慢慢期待";
 }
 
 function element(tag, className, text) {
@@ -106,7 +123,9 @@ function updateClocks() {
     const parts = countdownParts(view.target, now);
     view.card.classList.toggle("past", parts.reached);
     view.arrival.hidden = !parts.reached;
-    view.label.textContent = parts.reached ? "已过去" : "还有";
+    const label = countdownLabel(view.target - now);
+    view.arrival.textContent = parts.reached ? label : "";
+    view.label.textContent = parts.reached ? "已过去" : label;
     view.days.textContent = String(parts.days);
     view.days.classList.toggle("long-number", String(parts.days).length > 4);
     [parts.hours, parts.minutes, parts.seconds].forEach((value, index) => {
@@ -119,8 +138,8 @@ function render() {
   list.replaceChildren();
   clockViews = [];
   events.forEach((event, index) => {
-    const card = element("article", "countdown-card");
-    card.style.setProperty("--card-bg", COLORS[index % COLORS.length]);
+    const theme = themeFor(event.name);
+    const card = element("article", `countdown-card theme-${theme.id}`);
     const remove = element("button", "delete-button");
     remove.type = "button";
     remove.setAttribute("aria-label", `删除“${event.name}”倒计时`);
@@ -134,12 +153,12 @@ function render() {
       const buttons = list.querySelectorAll(".delete-button");
       (buttons[Math.min(index, buttons.length - 1)] || nameInput).focus();
     });
-    const emoji = element("span", "event-emoji", emojiFor(event.name));
+    const emoji = element("span", "event-emoji", theme.emoji);
     emoji.setAttribute("aria-hidden", "true");
     const time = normalizeTime(event.time);
     const date = element("time", "event-date", `${event.date.replaceAll("-", ".")} ${time}`);
     date.dateTime = `${event.date}T${time}`;
-    const arrival = element("p", "arrival-message", "时间到啦 🎉");
+    const arrival = element("p", "arrival-message");
     const label = element("p", "day-label");
     const days = element("strong", "days");
     const dayRow = element("div", "day-row");

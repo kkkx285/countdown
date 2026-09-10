@@ -58,3 +58,14 @@ footer { display: flex; justify-content: center; align-items: center; flex-wrap:
 .event-date { letter-spacing: 1px; line-height: 1.8; }
 @media (min-width: 761px) and (max-width: 1000px) { form { grid-template-columns: 1fr 1fr; } .create-button { width: 100%; } }
 @media (min-width: 441px) and (max-width: 760px) { form .field:first-child { grid-column: 1 / -1; } }
+
+/* Name-based light themes: only background, border and tiny decoration. */
+.countdown-card { --card-bg: #eaf0e1; }
+.theme-moon { --card-bg: linear-gradient(145deg, #f7efd9, #f4f0e3 55%, #eaf0e1); border-color: #e9e4cc; }
+.theme-birthday { --card-bg: linear-gradient(145deg, #f6e5ea, #fff8ee); border-color: #eddee1; }
+.theme-travel { --card-bg: radial-gradient(ellipse at 12% 4%, #ffffffa6, transparent 46%), linear-gradient(145deg, #e4eef6, #edf4f4); border-color: #dce7ed; }
+.theme-national { --card-bg: linear-gradient(145deg, #f3e1de, #f8eee5); border-color: #ead9d4; }
+.theme-study { --card-bg: linear-gradient(145deg, #ede7f4, #e8eff5); border-color: #e1ddeb; }
+.theme-payday { --card-bg: linear-gradient(145deg, #e2efdf, #f1f4e6); border-color: #d9e6d3; }
+.theme-christmas { --card-bg: linear-gradient(150deg, #e5ede0 65%, #f3e3dc); border-color: #dce5d5; }
+.theme-travel::before { content: "☁"; position: absolute; top: 23px; left: 20px; color: #ffffffb3; font-size: 24px; line-height: 1; pointer-events: none; }
