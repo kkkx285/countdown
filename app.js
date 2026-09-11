@@ -6,6 +6,7 @@ const form = document.getElementById("countdown-form");
 const nameInput = document.getElementById("event-name");
 const dateInput = document.getElementById("target-date");
 const timeInput = document.getElementById("target-time");
+const noteInput = document.getElementById("event-note");
 const list = document.getElementById("countdown-list");
 const message = document.getElementById("form-message");
 
@@ -58,6 +59,10 @@ function showMessage(text, error = false) {
   message.classList.toggle("error", error);
 }
 
+function normalizeNote(value) {
+  return typeof value === "string" ? value.trim().slice(0, 50) : "";
+}
+
 function loadEvents() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -66,7 +71,7 @@ function loadEvents() {
     if (!Array.isArray(data) || !data.every(item => item && typeof item.id === "string" && typeof item.name === "string" && item.name.trim().length > 0 && item.name.length <= 60 && targetTimestamp(item.date, item.time) !== null) || new Set(data.map(item => item.id)).size !== data.length) {
       throw new Error("Invalid saved countdowns");
     }
-    return data.map(item => ({ ...item, time: normalizeTime(item.time) }));
+    return data.map(item => ({ ...item, time: normalizeTime(item.time), note: normalizeNote(item.note) }));
   } catch {
     showMessage("无法读取本地记录。你仍可使用；新建并成功保存后将替换原有记录。", true);
     return [];
@@ -122,10 +127,8 @@ function updateClocks() {
   for (const view of clockViews) {
     const parts = countdownParts(view.target, now);
     view.card.classList.toggle("past", parts.reached);
-    view.arrival.hidden = !parts.reached;
-    const label = countdownLabel(view.target - now);
-    view.arrival.textContent = parts.reached ? label : "";
-    view.label.textContent = parts.reached ? "已过去" : label;
+    view.label.textContent = countdownLabel(view.target - now);
+    view.dayUnit.textContent = parts.reached ? "天（已过去）" : "天";
     view.days.textContent = String(parts.days);
     view.days.classList.toggle("long-number", String(parts.days).length > 4);
     [parts.hours, parts.minutes, parts.seconds].forEach((value, index) => {
@@ -158,11 +161,11 @@ function render() {
     const time = normalizeTime(event.time);
     const date = element("time", "event-date", `${event.date.replaceAll("-", ".")} ${time}`);
     date.dateTime = `${event.date}T${time}`;
-    const arrival = element("p", "arrival-message");
     const label = element("p", "day-label");
     const days = element("strong", "days");
     const dayRow = element("div", "day-row");
-    dayRow.append(days, element("span", "day-unit", "天"));
+    const dayUnit = element("span", "day-unit", "天");
+    dayRow.append(days, dayUnit);
     const clock = element("div", "clock-row");
     const digits = ["时", "分", "秒"].map((unit, index) => {
       if (index > 0) {
@@ -177,8 +180,11 @@ function render() {
       return digit;
     });
     // All user-entered content is inserted as text, never HTML.
-    card.append(remove, emoji, element("h3", "event-title", event.name), arrival, label, dayRow, clock, date);
-    clockViews.push({ card, arrival, label, days, digits, target: targetTimestamp(event.date, time) });
+    card.append(remove, emoji, element("h3", "event-title", event.name), label, dayRow, clock);
+    const note = normalizeNote(event.note);
+    if (note) card.append(element("p", "event-note", note));
+    card.append(date);
+    clockViews.push({ card, label, days, dayUnit, digits, target: targetTimestamp(event.date, time) });
     list.append(card);
   });
   document.getElementById("count").textContent = String(events.length);
@@ -207,7 +213,7 @@ form.addEventListener("submit", event => {
     return;
   }
   const id = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  events.push({ id, name, date: dateInput.value, time });
+  events.push({ id, name, date: dateInput.value, time, note: normalizeNote(noteInput.value) });
   const saved = saveEvents();
   render();
   form.reset();
